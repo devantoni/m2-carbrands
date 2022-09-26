@@ -1,0 +1,90 @@
+<?php
+/**
+ * Copyright © Magento, Inc. All rights reserved.
+ * See COPYING.txt for license details.
+ */
+
+/** @var $block \Magento\Catalog\Block\Product\View */
+?>
+
+<?php
+$_product = $block->getProduct();
+
+$brands = $block->getProduct()->getData('carbrands');
+$brands = array_map('trim', explode(',', $brands));
+?>
+<?php if (count($brands) > 1): ?>
+<br>
+<br>
+<select id="carBrands" name="carBrands">
+    <option value="" title="Select Biltype"><?php echo __('Størrelsesguide / bilmerke guide')?>
+</option>
+    <?php foreach($brands as $brand):?>
+    <?php $_brand = strtolower(preg_replace('/[\s-]/', '_', $brand)); ?>
+        <option value="<?php echo $_brand?>" title="<?php echo $brand?>"><?php echo $brand?></option>
+    <?php endforeach;?>
+</select>
+<br>
+<br>
+<?php foreach($brands as $brand):?>
+<?php 
+
+$_brand = strtolower(preg_replace('/[\s-]/', '_', $brand)); 
+
+
+$_jsonBrands[] = $_brand; 
+$modelCode = 'cam_'.$_brand;
+// corrected in installer script,
+if($modelCode === 'cam_ssangyong'){
+    $modelCode = 'cam_ssangYong';
+}
+$modelLabel = $block->getProduct()->getData($modelCode);
+if($modelCode === 'cam_toyota'){
+    $modelLabel = $_product->getResource()->getAttribute($modelCode)->getFrontend()->getValue($_product);
+}
+
+$models = array_map('trim', explode(',', $modelLabel));
+
+?>
+<div id="<?php echo $_brand?>" class="models" style="display:none">
+    <div class="modal-body-content">
+        <span><?php echo __('Oversikten nedenfor viser hvilke bilmodell dette buret passer til. Oversikten er kun veiledende, siden det kan forekomme variasjoner i bilstørrelser for årsmodeller og biler med f.eks. ekstra seterader, forlengede versjoner osv.');?></span>
+        <h2><?php echo $brand?></h2>
+        <?php 
+            if(!empty($models)){
+                foreach($models as $model){ ?>
+                <p><?php echo $model ?></p>
+        <?php } 
+            }?>
+    </div>
+</div>
+<?php endforeach;?>
+
+<script type="text/x-magento-init">
+    {
+        "*": {
+            "Mikopet_Carbrands/js/car-brands": {
+                "brands": <?php echo json_encode($_jsonBrands); ?>,
+                "models": "<?php echo 'car models'?>"
+            }
+        }
+    }
+</script>
+<?php endif; ?>
+
+<style>
+.modal-slide .page-main-actions{
+    display:none;
+}
+.models p:nth-child(odd) {
+  background: #fff8e7;
+}
+aside.modal-slide.car-brands-popup._show {
+    z-index: 999 !important;
+}
+@media screen and (min-width: 426px) {
+    aside.modal-slide.car-brands-popup._show {
+        left: calc(100% - 500px);
+    }
+}
+</style>
